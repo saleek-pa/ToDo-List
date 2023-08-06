@@ -44,11 +44,10 @@ body {
   border: 1px solid;
   border-radius: 5px;
   padding: 0.5em;
-  padding-bottom: 20px;
   margin: 0.5em auto;
   width: 70%;
-}
-
-.del-button {
-  float: right;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
