@@ -1,23 +1,39 @@
-import React, { useState } from "react";
+import React, { useReducer } from "react";
 import { Button, Container, Nav, Navbar } from "react-bootstrap";
 import { BsTrash } from "react-icons/bs";
 import "./ToDo.css";
 
+const initialState = {
+  value: "",
+  tasks: [{ title: "Task 1" }, { title: "Task 2" }],
+};
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "SET-VALUE":
+      return { ...state, value: action.payload };
+    case "ADD-TASK":
+      if (state.value.trim() !== "") {
+        return {
+          ...state,
+          tasks: [...state.tasks, { title: state.value }],
+          value: "",
+        };
+      }
+      return state;
+    case "DEL-TASK":
+      return {
+        ...state,
+        tasks: state.tasks.filter(
+          (task) => state.tasks.indexOf(task) !== action.payload
+        ),
+      };
+    default:
+      return state;
+  }
+};
+
 const ToDo = () => {
-  const [value, setValue] = useState("");
-  const [tasks, setTasks] = useState([
-    { title: "Task 1" },
-    { title: "Task 2" },
-  ]);
-
-  const addItem = () => {
-    value.trim() !== "" && setTasks([...tasks, { title: value }]);
-    setValue("");
-  };
-
-  const deleteTask = (index) => {
-    setTasks(tasks.filter((task) => tasks.indexOf(task) !== index));
-  };
+  const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
     <>
@@ -38,25 +54,32 @@ const ToDo = () => {
             <input
               type="text"
               className="input"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
+              value={state.value}
+              onChange={(e) =>
+                dispatch({ type: "SET-VALUE", payload: e.target.value })
+              }
               placeholder="Add New Task"
             />
-            <Button variant="light" onClick={addItem}>
+            <Button
+              variant="light"
+              onClick={() => dispatch({ type: "ADD-TASK" })}
+            >
               ADD
             </Button>
           </div>
-          {tasks.map((task, index) => (
-            <div className="list-task" key={index}>
+          {state.tasks.map((task, index) => (
+            <li className="list-task" key={index}>
               {task.title}
               <Button
                 variant="danger"
                 className="del-button"
-                onClick={() => deleteTask(index)}
+                onClick={() => {
+                  dispatch({ type: "DEL-TASK", payload: index });
+                }}
               >
                 <BsTrash />
               </Button>
-            </div>
+            </li>
           ))}
         </>
       </div>

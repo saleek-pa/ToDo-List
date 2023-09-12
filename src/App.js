@@ -1,11 +1,11 @@
-import React from 'react';
-import "./App.css"
+import React from "react";
+import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-import ToDo from './Components/ToDo';
+import ToDo from "./Components/ToDo";
 
 function App() {
   return (
-    <div className='App'>
+    <div className="App">
       <ToDo />
     </div>
   );
