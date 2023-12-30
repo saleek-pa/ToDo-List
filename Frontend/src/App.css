@@ -27,8 +27,8 @@ body {
 }
 
 .input-container {
-  display: flex;
-  justify-content: center;
+   display: flex;
+   justify-content: center;
 }
 
 .input {
@@ -60,4 +60,9 @@ body {
    display: flex;
    justify-content: space-between;
    align-items: center;
+}
+
+input[type="checkbox"] {
+   width: 20px;
+   height: 20px;
 }

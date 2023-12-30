@@ -1,68 +1,52 @@
-const Users = [
-   {
-      email: "alltrue@gmail.com",
-      password: 123,
-      role: "superAdmin",
-      permissions: 1,
-   },
-   {
-      email: "deletefalse@gmail.com",
-      password: 123,
-      role: "admin",
-      permissions: 2,
-   },
-   {
-      email: "readtrue@gmail.com",
-      password: 123,
-      role: "user",
-      permissions: 3,
-   },
-   {
-      email: "allfalse@gmail.com",
-      password: 123,
-      role: "member",
-      permissions: 4,
-   },
-];
-
-const Permissions = [
-   {
-      id: 1,
-      read: true,
-      create: true,
-      delete: true,
-   },
-   {
-      id: 2,
-      read: true,
-      create: true,
-      delete: false,
-   },
-   {
-      id: 3,
-      read: true,
-      create: false,
-      delete: false,
-   },
-   {
-      id: 4,
-      read: false,
-      create: false,
-      delete: false,
-   },
-];
+const User = require("../models/userModel");
+const Todo = require("../models/toDoModel");
 
 module.exports = {
    login: async (req, res) => {
       const { email, password } = req.body;
-      const user = Users.find((user) => user.email === email && user.password === parseInt(password));
-      if (user) res.status(200).json({ message: "success", permissionId: user.permissions });
-      else res.status(404).json({ message: "failed" });
+      const user = await User.findOne({ email, password });
+
+      if (user) {
+         res.status(200).json({ message: "Success", userId: user._id });
+      } else {
+         res.status(404).json({ message: "Failed" });
+      }
    },
 
-   checkPermission: async (req, res) => {
-      const { permissionId } = req.body;
-      const populatePermission = Permissions.find((value) => value.id === parseInt(permissionId));
-      return res.json({ permission: populatePermission });
+
+
+   viewTask: async (req, res) => {
+      const tasks = await Todo.find();
+      res.status(200).json({ tasks });
+   },
+
+
+
+   addTask: async (req, res) => {
+      const { task } = req.body;
+      if (!task) {
+         return res.status(400).json({ message: "Text is required for a task." });
+      }
+
+      const newTask = new Todo({ task });
+      const savedTask = await newTask.save();
+
+      res.status(201).json({ message: "Task added successfully", task: savedTask });
+   },
+
+
+
+   deleteTask: async (req, res) => {
+      const taskId = req.params.id;
+      if (!taskId) {
+         return res.status(400).json({ message: "Task ID is required for deletion." });
+      }
+
+      const deletedTask = await Todo.findByIdAndDelete(taskId);
+      if (!deletedTask) {
+         return res.status(404).json({ message: "Task not found." });
+      }
+
+      res.status(200).json({ message: "Task deleted successfully", deletedTask });
    },
 };

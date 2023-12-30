@@ -1,73 +1,60 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { axios } from "../Utils/axios";
 import { Button } from "react-bootstrap";
 import { BsTrash } from "react-icons/bs";
 import "../App.css";
 
-const initialState = {
-   value: "",
-   tasks: [{ title: "Task 1" }, { title: "Task 2" }],
-};
-
-const reducer = (state, action) => {
-   switch (action.type) {
-      case "SET-VALUE":
-         return { ...state, value: action.payload };
-
-      case "ADD-TASK":
-         if (state.value.trim() !== "") {
-            return {
-               ...state,
-               tasks: [...state.tasks, { title: state.value }],
-               value: "",
-            };
-         }
-         return state;
-
-      case "DEL-TASK":
-         return {
-            ...state,
-            tasks: state.tasks.filter((task) => state.tasks.indexOf(task) !== action.payload),
-         };
-
-      default:
-         return state;
-   }
-};
-
 const ToDo = () => {
-   const [state, dispatch] = useReducer(reducer, initialState);
-   const [permission, setPermission] = useState([]);
-   const permissionId = localStorage.getItem("permissionId");
+   const [tasks, setTasks] = useState([]);
+   const [access, setAccess] = useState(false);
+   const [text, setText] = useState("");
 
    useEffect(() => {
-      const checkPermission = async () => {
-         const response = await fetch("http://localhost:4000/permission", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ permissionId }),
-         });
+      const fetchtoDo = async () => {
+         try {
+            const response = await axios.get("/user/todo");
 
-         if (response.status === 200) {
-            const responseData = await response.json();
-            setPermission(responseData.permission);
+            if (response.status === 200) {
+               setAccess(true);
+               setTasks(response.data.tasks);
+            }
+         } catch (error) {
+            console.error(error.message);
          }
       };
 
-      checkPermission();
-   }, [permissionId]);
+      fetchtoDo();
+   }, []);
 
-   const handleAddTask = () => {
-      if (permission.create) dispatch({ type: "ADD-TASK" });
-      else alert("You dont have permission");
+   const handleAddTask = async (e) => {
+      if (text.trim() === "") {
+         return;
+      }
+      try {
+         const response = await axios.post("/user/todo", { task: text });
+         if (response.status === 200) {
+            alert("Task Added");
+         }
+      } catch (error) {
+         alert("You don't have the required permissions");
+         setText("");
+      }
    };
 
-   const handleDeleteTask = (index) => {
-      permission.delete ? dispatch({ type: "DEL-TASK", payload: index }) : alert("You dont have permission");
+   const handleDeleteTask = async (id) => {
+      try {
+         const response = await axios.delete(`/user/todo/${id}`);
+         if (response.status === 200) {
+            alert("Task Added");
+         }
+      } catch (error) {
+         alert("You don't have the required permissions");
+      }
    };
 
    return (
       <div className="container">
-         {permission.read ? (
+         {access ? (
             <div className="todo-container">
                <div className="header">ToDo List</div>
                <>
@@ -75,18 +62,18 @@ const ToDo = () => {
                      <input
                         type="text"
                         className="input"
-                        value={state.value}
-                        onChange={(e) => dispatch({ type: "SET-VALUE", payload: e.target.value })}
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
                         placeholder="Add New Task"
                      />
                      <Button variant="light" onClick={handleAddTask}>
                         ADD
                      </Button>
                   </div>
-                  {state.tasks.map((task, index) => (
-                     <li className="list-task" key={index}>
-                        {task.title}
-                        <Button variant="danger" className="del-button" onClick={() => handleDeleteTask(index)}>
+                  {tasks.map((task) => (
+                     <li className="list-task" key={task._id}>
+                        {task.task}
+                        <Button variant="danger" className="del-button" onClick={() => handleDeleteTask(task._id)}>
                            <BsTrash />
                         </Button>
                      </li>

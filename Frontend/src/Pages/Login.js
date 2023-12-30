@@ -1,4 +1,5 @@
 import React from "react";
+import { axios } from "../Utils/axios";
 import { useNavigate } from "react-router-dom";
 import { FloatingLabel, Form } from "react-bootstrap";
 
@@ -9,18 +10,23 @@ const Login = () => {
       e.preventDefault();
       const email = e.target.email.value;
       const password = e.target.password.value;
+      const adminEmail = process.env.REACT_APP_ADMIN_EMAIL;
 
-      const response = await fetch("http://localhost:4000/login", {
-         method: "POST",
-         headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({ email, password }),
-      });
+      try {
+         const endpoint = email === adminEmail ? "/admin/login" : "/user/login";
+         const response = await axios.post(endpoint, { email, password });
 
-      if (response.status === 200) {
-         const responseData = await response.json();
-         localStorage.setItem("permissionId", responseData.permissionId);
-         navigate("/todo");
-      } else alert("Failed!");
+         if (response.status === 200) {
+            localStorage.setItem("userId", response.data.userId);
+            alert("Success");
+            navigate(email === adminEmail ? "/dashboard" : "/todo");
+         } else {
+            alert("Failed!");
+         }
+      } catch (error) {
+         console.error("Error:", error);
+         alert("Failed!");
+      }
    };
 
    return (
