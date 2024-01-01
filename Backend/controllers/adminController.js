@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const User = require("../models/userModel");
 const Role = require("../models/roleModel");
 const Permission = require("../models/permissionModel");
@@ -14,8 +15,6 @@ module.exports = {
       }
    },
 
-
-
    viewUsers: async (req, res) => {
       const users = await User.find().populate({
          path: "role",
@@ -27,21 +26,18 @@ module.exports = {
       res.status(200).json({ message: "Success", users });
    },
 
-   
-
    changePermission: async (req, res) => {
       const userId = req.params.id;
-      const newPermission = req.body.permission;
+      const permissions = req.body.permission;
 
       const user = await User.findById(userId).populate("role");
-      if (user) {
-         const newPermissionObj = await Permission.findOne({ permission: newPermission });
-         if (user.role.permissionIds.includes(newPermissionObj._id)) {
-            await Role.findByIdAndUpdate(user.role._id, { $pull: { permissionIds: newPermissionObj._id } });
-         } else {
-            await Role.findByIdAndUpdate(user.role._id, { $push: { permissionIds: newPermissionObj._id } });
-         }
-      }
+
+      const allPermission = await Permission.find();
+      const matchingPermissionIds = allPermission
+         .filter((permission) => permissions.includes(permission.permission))
+         .map((permission) => permission._id);
+
+      await Role.findByIdAndUpdate(user.role._id, { $set: { permissionIds: matchingPermissionIds } });
 
       res.status(200).json({ message: "Permissions updated successfully" });
    },

@@ -66,3 +66,7 @@ input[type="checkbox"] {
    width: 20px;
    height: 20px;
 }
+
+.table-row {
+   margin-bottom: 20px !important;
+}
